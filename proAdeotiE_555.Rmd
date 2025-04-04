@@ -1,0 +1,350 @@
+---
+title: "proAdeotiE_555"
+output: html_document
+date: "2024-09-17"
+---
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, error = TRUE, message = FALSE,  warning = FALSE)
+library(tidyverse)
+#install.packages("corrplot")
+library(corrplot)
+library(ggplot2)
+#install.packages("GGally")
+library(GGally)
+library(ISLR)
+library(dplyr)
+library(foreign)
+library(MASS)
+```
+
+
+Obesity
+============
+
+Abstract
+-----------------
+
+Discussions about obesity can be an emotional topic, depending on the audience, but some of the reasons why it happens vary and sometimes could be dependent on the individual. The data-set that was selected focused more on the estimation of obesity levels that might stem from eating habits and variables like physical conditions.  
+The data-set includes 17 attributes and 2111 records, some of the variable names were changed to be self-explanatory, variable names like NObesity (Obesity Level), to Obes_level, which allows data classifications from Insufficient Weight, Normal Weight, Overweight Level I, Overweight Level II, Obesity Type I, Obesity Type II, and Obesity Type III. 77% of the data was gathered synthetically from countries in South America (Mexico, Peru, and Colombia) and 23% of the data was collected from web users' input. Some variable observations would be altered to be binary to help apply classical inferences and classification methods. 
+The data-set picked was used for a different purpose like generating computational tools to identify and recommend systems that help individuals with obesity. This paper will discuss the role genetics and lifestyle plays in obesity or its lack thereof.  
+
+
+
+
+```{r}
+#Type
+obesity_level <- read.csv("ObesityDataSet_raw_and_data_sinthetic.csv")
+names(obesity_level)
+obesity_level <- obesity_level %>%
+  select(Gender, Age, Height,Weight,CH2O,FAF,NCP,FCVC,TUE,FAVC,SMOKE,SCC,family_history_with_overweight,CAEC,CALC,MTRANS,NObeyesdad)
+obesity_level$NObeyesdad <- as.factor(obesity_level$NObeyesdad)
+obesity_level$family_history_with_overweight= as.factor(obesity_level$family_history_with_overweight)
+
+
+
+# Recode the 7 variable into 3 broader classes; a multi-class classification
+obesity_level$obes.3class <- ifelse(obesity_level$NObeyesdad %in% c("Insufficient_Weight", "Normal_Weight"), "Norm_weight",
+                          ifelse(obesity_level$NObeyesdad %in% c("Overweight_Level_I", "Overweight_Level_II"), "Overweight",
+                          ifelse(obesity_level$NObeyesdad %in% c("Obesity_Type_I", "Obesity_Type_II", "Obesity_Type_III"), "Obesity", NA)))
+
+obesity_level$obes.3class <- as.factor(obesity_level$obes.3class)
+summary(obesity_level)
+head(obesity_level)
+describe(obesity_level)
+# convert height from centimeters to inches. and convert weight from kg to pounds. also change most of the variables identifier.
+# Part genetics have to play in Obesity, regardless of eating habits.?
+```
+
+
+
+
+
+
+Introduction
+-----------------
+
+The role of genetics in obesity might go under the radar most of the time, with food habits or unhealthy lifestyle taking precedence of why people might be obese.  
+My questions centers on the Part genetics have to play in Obesity, regardless of eating habits.? And why certain eating habits do not always result in obesity. Certain types of people tend to have unhealthy eating habits and their propensity to gain weight appears to be on the low side, this is in comparison to some people that have average eating habits, but they are more susceptible to be obese if they do not pay enough attention to their calorie intake often. Coming across multiple scenarios like this has always piqued my interest in the why and the how. Finding a dataset that covers some part of my questions to an extent was why I decided to work on this topic. Having some sought of answer to why this might happen would be personable, considering the high rise in obesity level, especially in the U.S and around central America.  
+
+
+Background 
+--------------
+
+The truth is that there are multiple factors that contribute to obesity, factors like pervasive overeating, which is one of the accepted explanations for the primary cause of obesity. Nonetheless, contributing factors also include higher calorie intake from foods containing processed carbohydrate, which is widely affordable, but if estimated energy expenditure is on the lower side per day, our body has retained massive calorie intake with minimum output. Another contributing factor is the type of diet that is consumed, the previously mentioned factor is somewhat associated with this. The type of diet that is consumed on a daily basis is important;  “First, it is increasingly clear that the types and quality of foods consumed interact with the composition and health of our gut microbiota to influence digestive efficiency and flux (including the location, rate, and/or completeness of nutrient digestion), relative (host compared with microbiome) nutrient utilization, host metabolic expenditure, and host adipocyte function”. Generally, summarizes the need for a quality consumed diet for the gut microbiome and the host metabolic interactions to increase energy expenditure and could potentially reduce obesity risks.  
+The final factor this paper would focus on is the genetic role in obesity. “The obesity epidemic may be driven by intergenerational influences. Potential pathways include maternal-to-infant transmission of microbiome species (and thereby health risk); in utero epigenetic changes caused by maternal stress, obesity, and poor diet; and inter- or transgenerational transmission of sperm or oocyte noncoding RNAs (ncRNAs). As successive generations become more obese, risk may be transmitted to the next generation that increases their susceptibility independently of energy intake. The composition of the microbiome, clearly linked to risk of obesity, is transmitted from one generation to the next. Both dietary changes and diet-induced microbial metabolites can also induce epigenetic changes that influence risk of weight gain and obesity.”  The cellular biological specifications that contribute to obesity were spoken of to an extent. Obesity can be transgenerational, due to the contributions of our DNA, RNA synthesis in cohorts with unregulated poor diet quality from parents which have physiologically influenced how the gut microbiome interacts with food. 
+
+
+
+
+Data Description
+----------------------
+
+The Data was generated from countries of Mexico, Peru, and Colombia, based on their eating habits and physical condition. The Introductory paper and data formation was done by By Fabio Mendoza Palechor, Alexis De la Hoz Manotas in 2019 (https://doi.org/10.24432/C5H31Z). The data was collected through a web platform which accounted for 23% of the dataset, then an estimation, which was synthetically done accounted for the other 77% of the dataset.  
+Variable names, types, and descriptions 
+Gender, categorical, sexuality at birth 
+Age, Continuous,  
+Height, Continuous (km)
+Weight, Continuous (Kg)
+Family_history_with_overweight, Binary, has a family member suffered or suffers from overweight? 
+FAVC, Binary, do you eat high caloric food frequently? 
+FCVC, Integer, do you usually eat vegetables in your meals? 
+NCP, continuous,  How many main meals do you have daily?
+CAEC Categorical, do you eat any food between meals? 
+Smoke, Binary, do you smoke? 
+CH2O, Continuous, how much water do you drink daily? 
+SCC, Binary, do you monitor the calories you eat daily? 
+FAF, Continuous, how often do you have physical activity? 
+TUE, Integer, how much time do you use technological devices such as cell phone, video games, television, computer, and others 
+CALC, Categorical, how often do you drink alcohol? 
+Mtrans, Categorical, Which transportation do you usually use? 
+NObeyesdad, Categorical, Obesity level.  
+In all the Variables listed, there were no missing values accounted for. There would not be a need to omit values, or cleaning data. 
+We define BMI categories as following.
+
+BMI < 18.5 is underweight.
+BMI ranges from 18.5 -> 24.99 is normal.
+BMI ranges from 23 -> 24.99 is overweight.
+BMI > 25 is obese.
+
+Numerical and visualization techniques
+---------------------------------------
+
+```{r}
+#obesity_level$NObeyesdad
+#obes_space <- model.matrix(~ obes.3class - 1, data = obesity_level)
+# Calculate the means of the variables by obesity level. Univariate numerical summaries grouped by level
+Norm__means <- obesity_level %>%
+  filter(obes.3class == "Norm_weight") %>%        # Filter rows where origin is 1
+  select(2:9) %>%                # Select columns 1 to 7 (numeric columns)
+  colMeans(na.rm = TRUE)
+
+Obes_means <- obesity_level %>%
+  filter(obes.3class == "Obesity") %>%        # Filter rows where origin is 2
+  select(2:9) %>%                # Select columns 1 to 7 (numeric columns)
+  colMeans(na.rm = TRUE)
+
+Over_means <- obesity_level %>%
+  filter(obes.3class == "Overweight") %>%        # Filter rows where origin is 3
+  select(2:9) %>%                # Select columns 1 to 7 (numeric columns)
+  colMeans(na.rm = TRUE)
+
+
+# Display the result
+Norm__means
+Obes_means
+Over_means
+
+# Calculate the variance-covariance matrix of the variables in Auto grouped by origin
+Norm_var <- obesity_level %>%
+  filter(obes.3class == "Norm_weight") %>%        # Filter rows where origin is 1
+  select(2:9) %>%                # Select columns 1 to 7 (numeric columns)
+  var(na.rm = TRUE)
+
+Obes_var <- obesity_level %>%
+  filter(obes.3class == "Obesity") %>%        # Filter rows where origin is 2
+  select(2:9) %>%                # Select columns 1 to 7 (numeric columns)
+  var(na.rm = TRUE)
+
+Over_var <- obesity_level %>%
+  filter(obes.3class == "Overweight") %>%        # Filter rows where origin is 3
+  select(2:9) %>%                # Select columns 1 to 7 (numeric columns)
+  var(na.rm = TRUE)
+
+# Display the result
+Norm_var
+Obes_var
+Over_var
+
+#combine numeric variables and compute correlation matrix
+obes.cor <- cor(cbind(obesity_level[, 2:9], obes_space))
+round(obes.cor, 2)
+
+# Origin of car (1. American, 2. European, 3. Japanese)
+obes.gg <- ggpairs(data = obesity_level, columns = 3:9, mapping= aes(color =obes.3class))
+obes.gg
+```
+
+
+Methods & Research plan
+--------------------------
+
+The dataset picked has multivariate characteristics, it was highlighted as part of the data description. We will try using classical interference methods, like MANOVA and Hotelling's to test if multiple response variables differ significantly across groups and compare the means generated for the normal distributions, respectively. The sample size might help with avoiding some limitations, to interpret the data accurately, calculated covariance matrices must not be unreliable.  
+This data provides multiple response variables and a classification variable that allows for classification of this data. We would test the relationships between the variables using logistic regression. We would try multiple models to help with linearity assumption of the response and predictors and compare the best performing models using ANOVA between both (regular non-interactive relationships and variables with interactions). The model's limitations would also be visualized, this would help us determine the outliers and interpretation issues.  The Mass body index values would be recalculated to fit the weight level and used to classify obesity levels which would be used as the response for some binary and continuous variables.  
+The obesity levels would be useful for the classification methods; we would apply and evaluate the performance of the methods using cross-validation  Ordered Logistic Regression, classification Tree and random forest This CV would provide accuracy and compare the limitations of the classifications mentioned. 
+With all the methods that would be used already mentioned, each method has specific contexts where it excels and situations where its limitations require alternative approaches. The computations of this method would determine which of them helps us describe and better explains research directions. 
+
+
+
+```{r}
+#Balancing the classes through under-sampling to avoid over-fitting. 
+# Separate the majority and minority classes
+obesity.c <- obesity_level %>% filter(obes.3class == "Obesity") #majority class
+normweight.c <- obesity_level %>% filter(obes.3class == "Norm_weight")
+overweight.c <- obesity_level %>% filter(obes.3class == "Overweight")
+
+# Randomly under-sample the Obesity class to match the size of Norm_weight (559)
+set.seed(123)  # For reproducibility
+undersampled_obesity <- obesity.c %>%
+  sample_n(nrow(normweight.c))
+
+# Combine the under-sampled Obesity class with Norm_weight and Overweight
+b.obeslevel <- bind_rows(undersampled_obesity, normweight.c, overweight.c)
+table(b.obeslevel$obes.3class)
+
+obes_space <- model.matrix(~ obes.3class - 1, data = b.obeslevel)
+#create BMI function
+bmi_cal <- function(height, weight) {
+  bmi <- round(weight / (height^2), digits = 1) 
+  return(bmi)
+}
+b.obeslevel <- b.obeslevel %>%
+  mutate(bmi = bmi_cal(Height, Weight))
+
+# Convert 'family_history' to a binary variable (0 = "no", 1 = "yes")
+# Automatically detect and convert all "yes"/"no" columns to 0/1
+b.obeslevel <- b.obeslevel %>%
+  mutate_if(~ all(. %in% c("yes", "no")), ~ ifelse(. == "yes", 1, 0))
+
+# Check the result
+head(b.obeslevel)
+
+b.obeslevel$obes.3class <- ifelse(b.obeslevel$NObeyesdad %in% c("Insufficient_Weight", "Normal_Weight"), "Norm_weight",
+                          ifelse(b.obeslevel$NObeyesdad %in% c("Overweight_Level_I", "Overweight_Level_II"), "Overweight",
+                          ifelse(b.obeslevel$NObeyesdad %in% c("Obesity_Type_I", "Obesity_Type_II", "Obesity_Type_III"), "Obesity", NA)))
+```
+
+
+```{r}
+
+# fit ordered logistic regression and store results 
+obes.logr <- polr(obes.3class ~ family_history_with_overweight +Age+ SCC + FAF+ CH2O + FAVC+ FCVC+NCP+SMOKE, data = b.obeslevel, Hess=TRUE)
+
+summary(obes.logr)
+#to calculate p-value
+(coeftobes <- coef(summary(obes.logr)))
+pvalue <- pnorm(abs(coeftobes[, "t value"]), lower.tail = FALSE) * 2
+(coeft.obes <- cbind(coeftobes, "p value" = pvalue))
+```
+
+The Pvalues listed are all statistical significant against the null hypothesis. `The Alternative Hypothesis` states that the listed predictors in the formula used, does affect the probability of a person being in different BMI classes. 
+
+we would convert the coefficient values into odd ratios for easier interpretation to get the OR interpretations together with the confidence intervals through exponentiation of their earlier scaled log values. CI would be calculated using the standard errors, also assuming a normal distribution. If the 95% CI does not cross 0, the parameter estimate is statistically significant.
+
+```{r}
+confint.default(obes.logr) # CIs assuming normality, with exp
+## odds ratios
+exp(coef(obes.logr))
+
+## OR and CI
+exp(cbind(OR = coef(obes.logr), confint.default(obes.logr))) #assuming normality
+```
+Interpreting odd ratio
+--------------------------
+For people with positive obesity in their family history, the odds of having BMI ranges from 23 - 24.99 (overweight)and BMI > 25  (obese) is 5.24 times likely to occur than people with negative obesity in family history, holding all other variables constant.
+
+(*) For students in private school, the odds of being more likely to apply is 1.06 times [i.e., 1/0.943] that of public school students, holding constant all other variables (positive odds ratio).
+
+```{r}
+#their are available statistical test to evaluate whether the proportional odds assumption is tenable/appropriate. However, these tests have been criticized for having a tendency to reject the null hypothesis (that the sets of coefficients are the same), and hence, indicate that there the parallel slopes assumption does not hold, in cases where the assumption does hold
+library(brant)
+# Apply the Brant test to check proportional odds assumption
+brant(obes.logr)
+# Ensure obes.3class is an ordered factor
+b.obeslevel$obes.3class <- factor(b.obeslevel$obes.3class, 
+                                  levels = c("Norm_weight", "Overweight", "Obesity"), 
+                                  ordered = TRUE)
+#function will calculate the log odds of being greater than or equal to each value of the target variable
+#qlogis function, which transforms a probability to a logit transformations
+
+logodds <- function(y) {
+  c('Y>=1' = qlogis(mean(y >= 1)),
+    'Y>=2' = qlogis(mean(y >= 2)),
+    'Y>=3' = qlogis(mean(y >= 3)))
+} #creates the function that estimates the values that will be graphed
+
+# Print the summary
+print(logodds_summary)
+glm(I(as.numeric(apply) >= 2) ~ pared, family="binomial", data = dat)
+glm(I(as.numeric(apply) >= 3) ~ pared, family="binomial", data = dat)
+(logodds.obes <- with(b.obeslevel, summary(as.numeric(obes.3class) ~ family_history_with_overweight +Age+ SCC + FAF+ CH2O + FAVC+ FCVC+NCP+SMOKE, fun=logodds)))
+glm(I(as.numeric(obes.3class) >= 2) ~ family_history_with_overweight, family="binomial", data = b.obeslevel)
+glm(I(as.numeric(obes.3class) >= 3) ~ family_history_with_overweight, family="binomial", data = b.obeslevel)
+
+s[, 4] <- s[, 4] - s[, 3]
+s[, 3] <- s[, 3] - s[, 3]
+s
+```
+
+```{r}
+library(MASS)
+library(Hmisc)
+library(reshape2)
+
+dat <- read.dta("https://stats.idre.ucla.edu/stat/data/ologit.dta")
+head(dat)
+## fit ordered logit model and store results 'm'
+m <- polr(apply ~ pared + public + gpa, data = dat, Hess=TRUE)
+sf <- function(y) {
+  c('Y>=1' = qlogis(mean(y >= 1)),
+    'Y>=2' = qlogis(mean(y >= 2)),
+    'Y>=3' = qlogis(mean(y >= 3)))
+}
+
+(s <- with(dat, summary(as.numeric(apply) ~ pared + public + gpa, fun=sf)))
+summary(dat$apply)
+
+# Convert 'apply' to numeric
+dat$apply_numeric <- as.numeric(dat$apply)
+
+# Group by 'pared', 'public', and 'gpa', and apply the sf function
+(logodds_summary <- dat %>%
+  group_by(pared, public, gpa) %>%
+  summarise(
+    N = n(),
+    Y1 = sf(apply_numeric)[1],
+    Y2 = sf(apply_numeric)[2],
+    Y3 = sf(apply_numeric)[3]
+  ) %>%
+  arrange(pared, public, gpa))
+
+# Proportional odds models
+installed.packages(Design)
+library(Design)
+ddist<- datadist(pared, public, gpa)
+options(datadist='ddist')
+
+ologit <- lrm(apply~pared+public+gpa, data=olr.data, na.action=na.pass)
+print(ologit, dig=1)
+
+
+
+# Print the summary
+print(logodds_summary)
+glm(I(as.numeric(apply) >= 2) ~ pared, family="binomial", data = dat)
+glm(I(as.numeric(apply) >= 3) ~ pared, family="binomial", data = dat)
+
+# Fit logistic regression for each threshold
+model_Y1 <- glm(I(as.numeric(apply) >= 1) ~ pared + public + gpa, 
+                family = "binomial", data = dat)
+
+model_Y2 <- glm(I(as.numeric(apply) >= 2) ~ pared + public + gpa, 
+                family = "binomial", data = dat)
+
+model_Y3 <- glm(I(as.numeric(apply) >= 3) ~ pared + public + gpa, 
+                family = "binomial", data = dat)
+
+# View the summary of each model
+summary(model_Y1)
+summary(model_Y2)
+summary(model_Y3)
+
+```
+
+
+References
+--------------
+- "Estimation of Obesity Levels Based On Eating Habits and Physical Condition ." UCI Machine Learning Repository, 2019, https://doi.org/10.24432/C5H31Z.
+- Mozaffarian, Dariush. “Perspective: Obesity-an unexplained epidemic.” The American journal of clinical nutrition vol. 115,6 (2022): 1445-1450. doi:10.1093/ajcn/nqac075
